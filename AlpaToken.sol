@@ -4,7 +4,7 @@ import "./ERC20Token.sol";
 import "./Owner.sol";
 
 contract AlpaToken is owned, ERC20Token {
-
+    /// PortfolioValue in ETH
     uint256 public portfolioValue;
 
     mapping (address => bool) public frozenAccount;
@@ -34,11 +34,17 @@ contract AlpaToken is owned, ERC20Token {
     /// @notice Create `mintedAmount` tokens and send it to `target`
     /// @param target Address to receive the tokens
     /// @param mintedAmount the amount of tokens it will receive
-    function mintToken(address target, uint256 mintedAmount) onlyOwner public {
+    function mintToken(address target, uint256 mintedAmount) private {
         balanceOf[target] += mintedAmount;
         totalSupply += mintedAmount;
         emit Transfer(0, this, mintedAmount);
         emit Transfer(this, target, mintedAmount);
+    }
+    /// 
+        function destroyToken (address target, uint256 destroyAmount) private {
+        balanceOf[target] -= destroyAmount;
+        totalSupply -= destroyAmount;
+        emit Transfer(target, 0, destroyAmount);
     }
 
     /// @notice `freeze? Prevent | Allow` `target` from sending & receiving tokens
@@ -58,16 +64,20 @@ contract AlpaToken is owned, ERC20Token {
 
     /// @notice Buy tokens from contract by sending ether
     function buy() payable public {
-        uint amount = msg.value / buyPrice;               // calculates the amount
-        _transfer(this, msg.sender, amount);              // makes the transfers
+        uint amountNewAlp = (totalSupply / portfolioValue) * msg.value;               // calculates the amount
+///     portfolioValue = portfolioValue + msg.value
+        mintToken(msg.sender , amountNewAlp)
     }
 
     /// @notice Sell `amount` tokens to contract
     /// @param amount amount of tokens to be sold
-    function sell(uint256 amount) public {
+    function sell(uint256 _amount) public {
         address myAddress = this;
-        require(myAddress.balance >= amount * sellPrice);      // checks if the contract has enough ether to buy
-        _transfer(msg.sender, this, amount);              // makes the transfers
-        msg.sender.transfer(amount * sellPrice);          // sends ether to the seller. It's important to do this last to avoid recursion attacks
+        require(balanceOf[msg.sender]>= _amount);      // checks if the contract has enough ether to buy
+        unit sendBackEth = (portfolioValue / totalSupply) * _amount;
+        _transfer(this, msg.sender, sendBackEth);              // makes the transfers
+        destroyToken(msg.sender, _amount);
+        msg.sender.transfer(sendBackEth);          // sends ether to the seller. It's important to do this last to avoid recursion attacks
+        
     }
 }
