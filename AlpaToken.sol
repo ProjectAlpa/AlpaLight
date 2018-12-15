@@ -5,8 +5,7 @@ import "./Owner.sol";
 
 contract AlpaToken is owned, ERC20Token {
 
-    uint256 public sellPrice;
-    uint256 public buyPrice;
+    uint256 public portfolioValue;
 
     mapping (address => bool) public frozenAccount;
 
@@ -53,9 +52,8 @@ contract AlpaToken is owned, ERC20Token {
     /// @notice Allow users to buy tokens for `newBuyPrice` eth and sell tokens for `newSellPrice` eth
     /// @param newSellPrice Price the users can sell to the contract
     /// @param newBuyPrice Price users can buy from the contract
-    function setPrices(uint256 newSellPrice, uint256 newBuyPrice) onlyOwner public {
-        sellPrice = newSellPrice;
-        buyPrice = newBuyPrice;
+    function setPrices(uint256 newPortfolioValue) onlyOwner public {
+        portfolioValue = newPortfolioValue;
     }
 
     /// @notice Buy tokens from contract by sending ether
