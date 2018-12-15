@@ -58,7 +58,7 @@ contract AlpaToken is owned, ERC20Token {
     }
 
     /// @notice Buy tokens from contract by sending ether
-    function buy() payable public {
+    function () payable public {
         uint amountNewAlp = (totalSupply / portfolioValue) * msg.value;               // calculates the amount
         mintToken(msg.sender , amountNewAlp);
     }
