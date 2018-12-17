@@ -19,7 +19,9 @@ contract AlpaToken is owned, ERC20Token {
         string tokenSymbol
     ) ERC20Token(initialSupply, tokenName, tokenSymbol) public {}
 
-    /* Internal transfer, only can be called by this contract */
+    
+    /*  _tranfer is already defined in ERC20TOken.sol, we can delete it
+
     function _transfer(address _from, address _to, uint _value) internal {
         require (_to != 0x0);                               // Prevent transfer to 0x0 address. Use burn() instead
         require (balanceOf[_from] >= _value);               // Check if the sender has enough
@@ -29,7 +31,7 @@ contract AlpaToken is owned, ERC20Token {
         balanceOf[_from] -= _value;                         // Subtract from the sender
         balanceOf[_to] += _value;                           // Add the same to the recipient
         emit Transfer(_from, _to, _value);
-    }
+    }*/
 
     /// @notice Create `mintedAmount` tokens and send it to `target`
     /// @param target Address to receive the tokens
@@ -58,16 +60,16 @@ contract AlpaToken is owned, ERC20Token {
 
     /// @notice Buy tokens from contract by sending ether
     function buy() payable public {
-        uint amount = msg.value / buyPrice;               // calculates the amount
-        _transfer(this, msg.sender, amount);              // makes the transfers
+        uint amountOfNewlyCreatedTokens = msg.value / buyPrice;                     // calculates amount of newly created tokens
+        _transfer(this, msg.sender, amountOfNewlyCreatedTokens);                    // tranfers the amount of newly created tokens to ETH sender Address
     }
 
     /// @notice Sell `amount` tokens to contract
     /// @param amount amount of tokens to be sold
     function sell(uint256 amount) public {
-        address myAddress = this;
-        require(myAddress.balance >= amount * sellPrice);      // checks if the contract has enough ether to buy
-        _transfer(msg.sender, this, amount);              // makes the transfers
-        msg.sender.transfer(amount * sellPrice);          // sends ether to the seller. It's important to do this last to avoid recursion attacks
-    }
+        address AddressOfContract = this;                                           // defines the SmartContract Address as this
+        require(AddressOfContract.balance >= amountOfTokensToBeSold * sellPrice);   // checks if the contract has enough ether to buy
+        _transfer(msg.sender, this, amountOfTokensToBeSold);                        // transfers the amount of tokens to be sold back to the SmartContract
+        msg.sender.transfer(amountOfTokensToBeSold * sellPrice);                    // sends ether to the seller. It's important to do this last to avoid recursion attacks
+     }
 }
