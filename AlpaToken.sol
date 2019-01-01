@@ -19,7 +19,9 @@ contract AlpaToken is owned, ERC20Token {
         string memory tokenSymbol
     ) ERC20Token(initialSupply, tokenName, tokenSymbol) public {}
 
-    /* Internal transfer, only can be called by this contract */
+
+    /*  _tranfer is already defined in ERC20TOken.sol, we can delete it
+
     function _transfer(address _from, address _to, uint _value) internal {
         require (_to != 0x0);                               // Prevent transfer to 0x0 address. Use burn() instead
         require (balanceOf[_from] >= _value);               // Check if the sender has enough
@@ -29,7 +31,7 @@ contract AlpaToken is owned, ERC20Token {
         balanceOf[_from] -= _value;                         // Subtract from the sender
         balanceOf[_to] += _value;                           // Add the same to the recipient
         emit Transfer(_from, _to, _value);
-    }
+    }*/
 
     /// @notice Create `mintedAmount` tokens and send it to `target`
     /// @param target Address to receive the tokens
@@ -40,7 +42,7 @@ contract AlpaToken is owned, ERC20Token {
         emit Transfer(0, this, mintedAmount);
         emit Transfer(this, target, mintedAmount);
     }
-    /// 
+    ///
         function destroyToken (address target, uint256 destroyAmount) private {
         balanceOf[target] -= destroyAmount;
         totalSupply -= destroyAmount;
@@ -72,6 +74,6 @@ contract AlpaToken is owned, ERC20Token {
         _transfer(this, msg.sender, sendBackEth);              // makes the transfers
         destroyToken(msg.sender, _amount);
         msg.sender.transfer(sendBackEth);          // sends ether to the seller. It's important to do this last to avoid recursion attacks
-        
+
     }
 }
