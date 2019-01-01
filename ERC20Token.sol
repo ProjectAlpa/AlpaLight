@@ -12,7 +12,7 @@ contract ERC20Token {               // Public variables of the token
 
     mapping (address => uint256) public balanceOf;
     mapping (address => mapping (address => uint256)) public allowance;                 // array of all balances
-    
+
     event Transfer(address indexed from, address indexed to, uint256 value);            // public blockchain event
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);   // public blockchain event
     event Burn(address indexed from, uint256 value);                                    // This notifies clients about the amount burnt
@@ -36,7 +36,6 @@ contract ERC20Token {               // Public variables of the token
      * Internal transfer, only can be called by this contract
      */
     function _transfer(address _from, address _to, uint _value) internal {
-        
         require(_to != 0x0);                                            // Prevent transfer to 0x0 address. Use burn() instead
         require(balanceOf[_from] >= _value);                            // Check if the sender has enough
         require(balanceOf[_to] + _value > balanceOf[_to]);              // Check for overflows
