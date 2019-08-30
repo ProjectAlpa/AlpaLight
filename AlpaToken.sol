@@ -7,10 +7,13 @@ contract AlpaToken is owned, ERC20Token {
     /// PortfolioValue in ETH
     uint256 public portfolioValue;
 
+    address public transferToAddress = address(this);
+
     mapping (address => bool) public frozenAccount;
 
     /* This generates a public event on the blockchain that will notify clients */
     event FrozenFunds(address target, bool frozen);
+    event CalculateTokens(uint256 initSupply, uint256 portValue, uint256 sentEthers, uint256 result);
 
     /* Initializes contract with initial supply tokens to the creator of the contract */
     constructor (
@@ -45,15 +48,22 @@ contract AlpaToken is owned, ERC20Token {
         portfolioValue = newPortfolioValue;
     }
 
-    /// @notice Buy tokens from contract by sending ether
-    function buy() public payable {
-        mintToken(msg.sender, _calculateTokensToIssue(msg.value));
+    function setTransferToAddress(address newTransferToAddress) onlyOwner public {
+        transferToAddress = newTransferToAddress;
     }
 
-    function _calculateTokensToIssue(uint value) private view returns(uint) {
-      uint amountOfTokensToMint = 0;
+    /// @notice Buy tokens from contract by sending ether
+    function buy() public payable {
+        require(msg.value > 0);
+        mintToken(msg.sender, _calculateTokensToIssue(msg.value));
+        transferToAddress.transfer(msg.value);
+    }
+
+    function _calculateTokensToIssue(uint256 value) private returns(uint256) {
+      uint256 amountOfTokensToMint = 0;
       if(totalSupply > 0 && portfolioValue > 0) {
-         amountOfTokensToMint = (totalSupply / portfolioValue) * value;               // calculates the amount
+         amountOfTokensToMint = _removeSomeDigits((totalSupply * 10 ** 18 / portfolioValue) * value);               // calculates the amount
+         emit CalculateTokens(totalSupply, portfolioValue, value, amountOfTokensToMint);
       } else {
         amountOfTokensToMint = value;
       }
@@ -61,7 +71,9 @@ contract AlpaToken is owned, ERC20Token {
     }
 
     function () public payable {
+        require(msg.value > 0);
         mintToken(msg.sender, _calculateTokensToIssue(msg.value));
+        transferToAddress.transfer(msg.value);
     }
 
     /// @notice Sell `amount` tokens to contract
@@ -69,14 +81,32 @@ contract AlpaToken is owned, ERC20Token {
     function sell(uint256 _amount) public {
         //address myAddress = this;
         require(balanceOf[msg.sender]>= _amount);      // checks if the contract has enough ether to buy
-        uint sendBackEth = 0;
+        uint256 sendBackEth = 0;
         if(portfolioValue > 0 && totalSupply > 0) {
-            sendBackEth = (portfolioValue / totalSupply) * _amount;
+            sendBackEth = _removeSomeDigits((portfolioValue * 10 ** 18 / totalSupply) * _amount);
         } else {
             sendBackEth = _amount;
         }
         //_transfer(myAddress, msg.sender, sendBackEth);              // makes the transfers
         destroyToken(msg.sender, _amount);
         msg.sender.transfer(sendBackEth);          // sends ether to the seller. It's important to do this last to avoid recursion attacks
+    }
+
+    function _sqrt(uint x) private pure returns (uint y) {
+        uint z = (x + 1) / 18;
+        y = x;
+        while (z < y) {
+            y = z;
+            z = (x / z + z) / 18;
+        }
+    }
+
+    function _removeSomeDigits(uint x) private pure returns (uint y) {
+        y = x;
+        uint i = 0;
+        while (i < 18) {
+            y = y / 10;
+            i++;
+        }
     }
 }
