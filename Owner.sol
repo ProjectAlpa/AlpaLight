@@ -22,4 +22,8 @@ contract owned {
         contributors[newContributor] = true;
     }
 
+    function removeContributor(address newContributor) onlyOwner public {
+        contributors[newContributor] = false;
+    }
+
 }
