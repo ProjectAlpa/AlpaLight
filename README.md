@@ -14,4 +14,4 @@ Respository for the SmartContracts for the Etherum blockchain programmed by Proj
 ## links
 
 - [Solidity course @udemy](https://www.udemy.com/best-solidity-tutorial-course-ethereum-blockchain-development/learn/v4/overview)
-- [CryptoZombies game](https://cryptozombies.io/)
+- [CryptoZombies game](https://cryptozombies.io/) 
