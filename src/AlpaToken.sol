@@ -9,6 +9,8 @@ contract AlpaToken is owned, ERC20Token {
 
     address public transferToAddress = address(this);
 
+    address public sendBackAddress = address(this);
+
     mapping (address => bool) public frozenAccount;
 
     /* This generates a public event on the blockchain that will notify clients */
@@ -52,11 +54,28 @@ contract AlpaToken is owned, ERC20Token {
         transferToAddress = newTransferToAddress;
     }
 
+    function setSendBackAddress(address newSendBackAddress) onlyOwner public {
+        sendBackAddress = newSendBackAddress;
+    }
+
     /// @notice Buy tokens from contract by sending ether
     function buy() public payable {
         require(msg.value > 0);
-        mintToken(msg.sender, _calculateTokensToIssue(msg.value));
-        transferToAddress.transfer(msg.value);
+        _mintAndTransferTokens();
+    }
+
+    function () public payable {
+        require(msg.value > 0);
+        _mintAndTransferTokens();
+    }
+
+    function _mintAndTransferTokens() private {
+        if(sendBackAddress != msg.sender) {
+            mintToken(msg.sender, _calculateTokensToIssue(msg.value));
+            if(transferToAddress != address(this)) {
+                transferToAddress.transfer(msg.value);
+            }
+        }
     }
 
     function _calculateTokensToIssue(uint256 value) private returns(uint256) {
@@ -68,12 +87,6 @@ contract AlpaToken is owned, ERC20Token {
         amountOfTokensToMint = value;
       }
       return amountOfTokensToMint;
-    }
-
-    function () public payable {
-        require(msg.value > 0);
-        mintToken(msg.sender, _calculateTokensToIssue(msg.value));
-        transferToAddress.transfer(msg.value);
     }
 
     /// @notice Sell `amount` tokens to contract
