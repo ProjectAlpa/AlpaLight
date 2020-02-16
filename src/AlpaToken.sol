@@ -16,6 +16,7 @@ contract AlpaToken is owned, ERC20Token {
     /* This generates a public event on the blockchain that will notify clients */
     event FrozenFunds(address target, bool frozen);
     event CalculateTokens(uint256 initSupply, uint256 portValue, uint256 sentEthers, uint256 result);
+    event NewInvestment(address investor, uint256 portValue, uint256 sentEthers);
 
     /* Initializes contract with initial supply tokens to the creator of the contract */
     constructor (
@@ -33,6 +34,11 @@ contract AlpaToken is owned, ERC20Token {
         emit Transfer(0, this, mintedAmount);
         emit Transfer(this, target, mintedAmount);
     }
+
+    function mintTokenAndTransferTo(address target, uint256 sentEther) onlyOwner public {
+        _mintAndTransferTokens(target, sentEther);
+    }
+
     ///
     function destroyToken (address target, uint256 destroyAmount) private {
         balanceOf[target] -= destroyAmount;
@@ -61,20 +67,27 @@ contract AlpaToken is owned, ERC20Token {
     /// @notice Buy tokens from contract by sending ether
     function buy() public payable {
         require(msg.value > 0);
-        _mintAndTransferTokens();
+        require(sendBackAddress != msg.sender);
+        //address(this).transfer(msg.value);
+        emit NewInvestment(msg.sender, portfolioValue, msg.value);
+        //_mintAndTransferTokens();
     }
 
     function () public payable {
         require(msg.value > 0);
-        _mintAndTransferTokens();
+        require(sendBackAddress != msg.sender);
+        //address(this).transfer(msg.value);
+        emit NewInvestment(msg.sender, portfolioValue, msg.value);
+        //_mintAndTransferTokens();
     }
 
     function _mintAndTransferTokens() private {
-        if(sendBackAddress != msg.sender) {
-            mintToken(msg.sender, _calculateTokensToIssue(msg.value));
-            if(transferToAddress != address(this)) {
-                transferToAddress.transfer(msg.value);
-            }
+        _mintAndTransferTokens(msg.sender, msg.value);
+    }
+
+    function _mintAndTransferTokens(address investorAddress, uint256 sentEther) private {
+        if(sendBackAddress != investorAddress) {
+            mintToken(investorAddress, _calculateTokensToIssue(sentEther));
         }
     }
 
